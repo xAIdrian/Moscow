@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { getUser as getCannedOpener } from './controllers/gptController.js';
+import { processImageText, extractBioWithGpt } from './controllers/gptController.js';
 import path from 'path';
 const router = Router();
 
@@ -37,12 +37,9 @@ function checkFileType(file, cb) {
   }
 }
 
-//Sample of how to use exports module with controller
-router.get('/opener', getCannedOpener);
-
 // Upload route
 router.post('/upload', (req, res) => {
-  upload(req, res, (err) => {
+  upload(req, res, async (err) => {
       if(err) {
           console.log("🚀 ~ upload ~ err:", err)
           res.send({
@@ -58,7 +55,9 @@ router.post('/upload', (req, res) => {
                   message: 'File Uploaded!',
                   file: `uploads/${req.file.filename}`
               });
-              getCannedOpener('uploads/' + req.file.filename, res);
+              const rawImageText = await processImageText('uploads/' + req.file.filename, res);
+              const profileText = await extractBioWithGpt(rawImageText);
+              console.log("🚀 ~ upload ~ profileText:", profileText)
           }
       }
   });

@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 import { OPENAI_API_KEY } from "../appsecrets.js";
-import base64 from 'base-64';
 import fs from 'fs';
-
+import Tesseract from 'tesseract.js';
+import { extractImageText } from './prompts.js';
 
 function encode_image(image_path) {
   const imageFile = fs.readFileSync(image_path);
@@ -13,7 +13,29 @@ const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
 });
 
-export async function getUser(filePath) {
+export async function processImageText(filePath) {
+  return Tesseract.recognize(
+    filePath,
+    'eng',
+    { logger: m => console.log(m) }
+  ).then(function(result) {
+    return result.data.text;
+  });
+}
+
+export async function extractBioWithGpt(rawText) {
+  const response = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo-0125",
+    // response_format={ "type": "json_object" },
+    messages: [
+      { "role": "system", "content": extractImageText },
+      { "role": "user", "content": rawText }
+    ]
+  })
+  return response.choices[0].message.content;
+}
+
+export async function promptGptVision(filePath) {
   const base64_image = encode_image(filePath)
 
   const response = await openai.chat.completions.create({
@@ -22,7 +44,7 @@ export async function getUser(filePath) {
       {
         role: "user", 
         content: [
-          { type: "text", text: "What’s in this image?" },
+          { type: "text", text: "What is in this image?" },
           {
             type: "image_url",
             image_url: {
@@ -33,5 +55,5 @@ export async function getUser(filePath) {
       },
     ],
   });
-  console.log(response.choices[0]);
+  console.log("🚀 ~ getUser ~ response:", response.choices[0]);
 }
