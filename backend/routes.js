@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { processImageText, extractBioWithGpt } from './controllers/gptController.js';
+import { processImageText, extractBioWithGpt, getOpeningLineWithGpt } from './controllers/gptController.js';
 import path from 'path';
 const router = Router();
 
@@ -51,13 +51,13 @@ router.post('/upload', (req, res) => {
                   message: 'Error: No File Selected!'
               });
           } else {
-              res.send({
-                  message: 'File Uploaded!',
-                  file: `uploads/${req.file.filename}`
-              });
               const rawImageText = await processImageText('uploads/' + req.file.filename, res);
               const profileText = await extractBioWithGpt(rawImageText);
-              console.log("🚀 ~ upload ~ profileText:", profileText)
+              const openingLine = await getOpeningLineWithGpt(profileText);
+              res.send({
+                  message: 'success',
+                  data: openingLine
+              });
           }
       }
   });

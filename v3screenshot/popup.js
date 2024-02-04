@@ -1,14 +1,11 @@
 document.addEventListener("DOMContentLoaded", function() {
     const captureButton = document.getElementById("capture");
     const screenshotContainer = document.getElementById("screenshotContainer");
+    const resultTextArea = document.getElementById("response");
+    console.log("🚀 ~ document.addEventListener ~ resultTextArea:", resultTextArea)
   
     captureButton.addEventListener("click", function() {
       chrome.tabs.captureVisibleTab(function(screenshotDataUrl) {
-        //get the image object
-        const screenshotImage = new Image();
-        screenshotImage.src = screenshotDataUrl;
-        //add to view
-        screenshotContainer.appendChild(screenshotImage);
         //prepare image for backend
         const blob = dataUrlToBlob(screenshotDataUrl);
         const formData = new FormData();
@@ -32,10 +29,8 @@ document.addEventListener("DOMContentLoaded", function() {
               .then((response) => response.json())
               .then((result) => {
                 console.log("Success:", result);
-                //display result
-                const resultDiv = document.createElement("div");
-                resultDiv.textContent = result;
-                screenshotContainer.appendChild(resultDiv);
+                //display result as text
+                resultTextArea.textContent = result.data;
               })
               .catch((error) => {
                 console.error("Error:", error);

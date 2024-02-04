@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { OPENAI_API_KEY } from "../appsecrets.js";
 import fs from 'fs';
 import Tesseract from 'tesseract.js';
-import { extractImageText } from './prompts.js';
+import { extractImageText, responsePrompt } from './prompts.js';
 
 function encode_image(image_path) {
   const imageFile = fs.readFileSync(image_path);
@@ -21,6 +21,17 @@ export async function processImageText(filePath) {
   ).then(function(result) {
     return result.data.text;
   });
+}
+
+export async function getOpeningLineWithGpt(profileText) {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4-0125-preview",
+    messages: [
+      { "role": "system", "content": responsePrompt },
+      { "role": "user", "content": 'generate an opening line from :' + profileText }
+    ]
+  })
+  return response.choices[0].message.content;
 }
 
 export async function extractBioWithGpt(rawText) {
