@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
-import gptController from './controllers/gptController';
-
+import { getUser as getCannedOpener } from './controllers/gptController.js';
+import path from 'path';
 const router = Router();
 
 // Set storage engine
@@ -38,18 +38,19 @@ function checkFileType(file, cb) {
 }
 
 //Sample of how to use exports module with controller
-router.get('/gpt', gptController.getUser);
+router.get('/opener', getCannedOpener);
 
 // Upload route
 router.post('/upload', (req, res) => {
   upload(req, res, (err) => {
       if(err) {
+          console.log("🚀 ~ upload ~ err:", err)
           res.send({
               message: err
           });
       } else {
           if(req.file == undefined) {
-              res.send({
+              res.send({ 
                   message: 'Error: No File Selected!'
               });
           } else {
@@ -57,11 +58,10 @@ router.post('/upload', (req, res) => {
                   message: 'File Uploaded!',
                   file: `uploads/${req.file.filename}`
               });
+              getCannedOpener('uploads/' + req.file.filename, res);
           }
       }
   });
 });
-
-module.exports = router;
 
 export default router;
