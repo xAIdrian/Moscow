@@ -56,7 +56,7 @@ router.post('/upload', (req, res) => {
               const openingLine = await getOpeningLineWithGpt(profileText);
               res.send({
                   message: 'success',
-                  data: openingLine
+                  data: openingLine 
               });
           }
       }
